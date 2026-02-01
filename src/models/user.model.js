@@ -50,11 +50,11 @@ const userSchema = new Schema(
 );
 
 // To hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
   this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+}); // No next() is used in async middleware  (Either use async OR use next — NEVER both)
 
 // to check password
 userSchema.methods.isPasswordCorrect = async function (password) {
