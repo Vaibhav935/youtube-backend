@@ -16,4 +16,5 @@
 10. Written methods to generate Access and Refresh token in userSchema.
 11. Implementing file uploads. Cloudinary and Multer.
 12. Also using fs - filesystem given by nodejs.
-13. 
+13. Implementing user.controller and user.middleware in user.routes
+14. 
