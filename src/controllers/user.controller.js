@@ -3,6 +3,27 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import bcrypt from "bcrypt";
+
+const generateRefreshAndAccessToken = async (userId) => {
+  try {
+    const user = await UserModel.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken();
+    user.save({
+      validateBeforeSave: true,
+    });
+
+    return { refreshToken, accessToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating refresh and access token."
+    );
+  }
+};
 
 const registerUserController = asyncHandler(async (req, res) => {
   // get user details form frontend
@@ -85,10 +106,74 @@ const registerUserController = asyncHandler(async (req, res) => {
       .status(201)
       .json(new ApiResponse(200, createdUser, "User registered successfully"));
   } catch (error) {
-    console.log("error: ", error);
+    console.log("error in register api, ", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error, error in register API",
+      error,
+    });
+  }
+});
+
+const loginUserController = asyncHandler(async (req, res) => {
+  try {
+    // take data form req body
+    // validate using one - username or email
+    // find the user
+    // password check
+    // generate access and refresh token
+    // send cookie
+
+    const { email, username, password } = req.body;
+
+    if (!username || !password) {
+      throw new ApiError(400, "username or password is required.");
+    }
+
+    const existingUser = await UserModel.findOne({
+      $or: [{ username }, { password }],
+    });
+
+    if (!existingUser) {
+      throw new ApiError(404, "User does not exist.");
+    }
+
+    // const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+    const isPasswordValid = await existingUser.isPasswordCorrect(password);
+
+    if (!isPasswordValid) throw new ApiError(401, "Invalid User Credentials");
+
+    const { accessToken, refreshToken } = await generateRefreshAndAccessToken(
+      existingUser._id
+    );
+
+    const loggedInUser = await UserModel.findById(existingUser._id).select(
+      "-password -refreshToken"
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    return res
+      .status(200)
+      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, options)
+      .json(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged In successfully"
+      );
+  } catch (error) {
+    console.log("error in login api, ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error, error in login API",
       error,
     });
   }

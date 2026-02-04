@@ -17,4 +17,6 @@
 11. Implementing file uploads. Cloudinary and Multer.
 12. Also using fs - filesystem given by nodejs.
 13. Implementing user.controller and user.middleware in user.routes
-14. 
+14. Finally registered one user and multiple bug fixes.
+15. Made collection in Postman.
+16. 
