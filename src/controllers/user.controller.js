@@ -8,16 +8,18 @@ import bcrypt from "bcrypt";
 const generateRefreshAndAccessToken = async (userId) => {
   try {
     const user = await UserModel.findById(userId);
+
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    user.refreshToken = refreshToken();
+    user.refreshToken = refreshToken;
     user.save({
       validateBeforeSave: true,
     });
 
     return { refreshToken, accessToken };
   } catch (error) {
+    console.log("error in generating token: ", error);
     throw new ApiError(
       500,
       "Something went wrong while generating refresh and access token."
@@ -126,12 +128,12 @@ const loginUserController = asyncHandler(async (req, res) => {
 
     const { email, username, password } = req.body;
 
-    if (!username || !password) {
-      throw new ApiError(400, "username or password is required.");
+    if (!username && !email) {
+      throw new ApiError(400, "username or email is required.");
     }
 
     const existingUser = await UserModel.findOne({
-      $or: [{ username }, { password }],
+      $or: [{ username }, { email }],
     });
 
     if (!existingUser) {
@@ -152,8 +154,8 @@ const loginUserController = asyncHandler(async (req, res) => {
     );
 
     const options = {
-      httpOnly: true,
-      secure: true,
+      httpOnly: true, // cookie can't be accessed from document.cookie only backend
+      secure: true, // only accessible through https, localhost can't access cookie
     };
 
     return res
@@ -161,22 +163,58 @@ const loginUserController = asyncHandler(async (req, res) => {
       .cookie("refreshToken", refreshToken, options)
       .cookie("accessToken", accessToken, options)
       .json(
-        200,
-        {
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User logged In successfully"
+        new ApiResponse(
+          200,
+          {
+            user: loggedInUser,
+            accessToken,
+            refreshToken,
+          },
+          "User logged In successfully"
+        )
       );
   } catch (error) {
     console.log("error in login api, ", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error, error in login API",
+      error: error?.message,
+    });
+  }
+});
+
+const logoutUserController = asyncHandler(async (req, res) => {
+  try {
+    await UserModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          refreshToken: undefined,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    res
+      .status(200)
+      .clearCookie("refreshToken", options)
+      .clearCookie("accessToken", options)
+      .json(new ApiResponse(200, {}, "User logged Out successfully."));
+  } catch (error) {
+    console.log("error in logout controller api: ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error in, logout api",
       error,
     });
   }
 });
 
-export { registerUserController };
+export { registerUserController, loginUserController, logoutUserController };

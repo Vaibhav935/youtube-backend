@@ -19,4 +19,5 @@
 13. Implementing user.controller and user.middleware in user.routes
 14. Finally registered one user and multiple bug fixes.
 15. Made collection in Postman.
-16. 
+16. Made login controller and authMiddleware and logout controller.
+17. 
