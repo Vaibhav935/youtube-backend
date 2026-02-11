@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+// import fs from "fs"; // callback based
+import fs from "fs/promises" // promise based
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,13 +23,24 @@ const uploadOnCloudinary = async (localFilePath) => {
     });
 
     // file uploaded successfully
-    // console.log("File uploaded successfully, url: ", response.url);
 
-    // fs.unlink(localFilePath)
+    // fs.unlink(localFilePath, (err) => {
+    //   if(err){
+    //     console.error("Error in deleting local file, ", err)
+    //   }else{
+    //     console.log("local file deleted")
+    //   }
+    // })
+
+    // await fs.promises.unlink(localFilePath)
+    // OR
+    await fs.unlink(localFilePath)
+
     return response;
   } catch (error) {
     if (localFilePath != "") {
-      fs.unlinkSync(localFilePath);
+      fs.unlinkSync(localFilePath); // only in fs not fs/promises
+      //  fs.unlink(localFilePath, (err) => console.error(err))
     }
     return error;
   }
