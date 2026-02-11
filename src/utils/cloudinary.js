@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 // import fs from "fs"; // callback based
-import fs from "fs/promises" // promise based
+import fs from "fs/promises"; // promise based
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -34,13 +34,14 @@ const uploadOnCloudinary = async (localFilePath) => {
 
     // await fs.promises.unlink(localFilePath)
     // OR
-    await fs.unlink(localFilePath)
+    await fs.unlink(localFilePath);
 
     return response;
   } catch (error) {
     if (localFilePath != "") {
-      fs.unlinkSync(localFilePath); // only in fs not fs/promises
-      //  fs.unlink(localFilePath, (err) => console.error(err))
+      // fs.unlinkSync(localFilePath); // only in fs not fs/promises and no callback because synchronous
+      // fs.unlink(localFilePath, (err) => console.error(err)) // not allowed in fs/promised
+      await fs.unlink(localFilePath);
     }
     return error;
   }
