@@ -3,7 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import bcrypt from "bcrypt";
 
 const generateRefreshAndAccessToken = async (userId) => {
   try {
@@ -38,7 +37,6 @@ const registerUserController = asyncHandler(async (req, res) => {
   // check for user creation
   // return res
 
-  try {
     const { username, fullname, email, password } = req.body;
 
     if (!username || !fullname || !email || !password) {
@@ -107,18 +105,9 @@ const registerUserController = asyncHandler(async (req, res) => {
     return res
       .status(201)
       .json(new ApiResponse(200, createdUser, "User registered successfully"));
-  } catch (error) {
-    console.log("error in register api, ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error, error in register API",
-      error,
-    });
-  }
 });
 
 const loginUserController = asyncHandler(async (req, res) => {
-  try {
     // take data form req body
     // validate using one - username or email
     // find the user
@@ -173,18 +162,9 @@ const loginUserController = asyncHandler(async (req, res) => {
           "User logged In successfully"
         )
       );
-  } catch (error) {
-    console.log("error in login api, ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error, error in login API",
-      error: error?.message,
-    });
-  }
 });
 
 const logoutUserController = asyncHandler(async (req, res) => {
-  try {
     await UserModel.findByIdAndUpdate(
       req.user._id,
       {
@@ -207,14 +187,6 @@ const logoutUserController = asyncHandler(async (req, res) => {
       .clearCookie("refreshToken", options)
       .clearCookie("accessToken", options)
       .json(new ApiResponse(200, {}, "User logged Out successfully."));
-  } catch (error) {
-    console.log("error in logout controller api: ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error in, logout api",
-      error,
-    });
-  }
 });
 
 export { registerUserController, loginUserController, logoutUserController };
