@@ -235,9 +235,40 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+
+  if (!oldPassword) {
+    throw new ApiError(404, "Old Password is required");
+  }
+
+  if (!newPassword) {
+    throw new ApiError(404, "New Password is required");
+  }
+
+  if (!(newPassword === confirmPassword)) {
+    throw new ApiError(401, "Unauthorized, confirm password does not match");
+  }
+
+  const user = await UserModel.findById(req.user?._id);
+  const isPasswordCorrect = await UserModel.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
 export {
   registerUserController,
   loginUserController,
   logoutUserController,
   refreshAccessToken,
+  changeCurrentPassword,
 };
