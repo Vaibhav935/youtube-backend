@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "youtube like backend project",
   "type": "module",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js"
   },

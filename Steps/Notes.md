@@ -1,4 +1,5 @@
 <!-- JWT is a Bearer Token -->
+<!-- Keeping all the edge cases in mind and coding like taking cookies form req.body or headers in case of mobile phone -->
 
 1. Professional Backend Setup - Folder structure setup
 2. Connected Database 
@@ -20,4 +21,5 @@
 14. Finally registered one user and multiple bug fixes.
 15. Made collection in Postman.
 16. Made login controller and authMiddleware and logout controller.
-17. 
+17. fs vs fs/promises error resolved.
+18. Made refresh token endpoint.
