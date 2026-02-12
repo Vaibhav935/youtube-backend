@@ -26,7 +26,7 @@ const generateRefreshAndAccessToken = async (userId) => {
   }
 };
 
-const registerUserController = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res) => {
   // get user details form frontend
   // validation - not empty
   // check if user already exists - username, email
@@ -102,7 +102,7 @@ const registerUserController = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
-const loginUserController = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
   // take data form req body
   // validate using one - username or email
   // find the user
@@ -159,7 +159,7 @@ const loginUserController = asyncHandler(async (req, res) => {
     );
 });
 
-const logoutUserController = asyncHandler(async (req, res) => {
+const logoutUser = asyncHandler(async (req, res) => {
   await UserModel.findByIdAndUpdate(
     req.user._id,
     {
@@ -265,10 +265,130 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+});
+
+const updateUserDetails = asyncHandler(async (req, res) => {
+  const { fullname, email } = req.body;
+
+  if (!fullname || !email) {
+    throw new ApiError(400, "All fields are required");
+  }
+
+  const user = UserModel.findByIdAndUpdate(
+    req.body?.user,
+    {
+      $set: {
+        fullname,
+        email,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account details updated successfully"));
+});
+
+const updateChannelName = asyncHandler(async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    throw new ApiError(400, "username or channel name is required");
+  }
+
+  const user = await UserModel.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        username,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password");
+
+  return res.json(
+    new ApiResponse(200, user, "Username or Channel Name changed successfully")
+  );
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading on avatar");
+  }
+
+  const user = await UserModel.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar uploaded successfully"));
+});
+
+const updateCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "CoverImage file is missing");
+  }
+
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while uploading CoverImage");
+  }
+
+  const user = await UserModel.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        coverImage: coverImage.url,
+      },
+    },
+    {
+      new: true,
+    }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "CoverImage uploaded successfully"));
+});
+
 export {
-  registerUserController,
-  loginUserController,
-  logoutUserController,
+  registerUser,
+  loginUser,
+  logoutUser,
   refreshAccessToken,
   changeCurrentPassword,
+  getCurrentUser,
+  updateUserDetails,
+  updateChannelName,
+  updateUserAvatar,
+  updateCoverImage,
 };

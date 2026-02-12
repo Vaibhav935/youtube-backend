@@ -1,10 +1,10 @@
 import { Router } from "express";
 import {
   changeCurrentPassword,
-  loginUserController,
-  logoutUserController,
+  loginUser,
+  logoutUser,
   refreshAccessToken,
-  registerUserController,
+  registerUser,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -22,13 +22,13 @@ router.route("/register").post(
       maxCount: 1,
     },
   ]),
-  registerUserController
+  registerUser
 );
 
-router.route("/login").post(loginUserController);
+router.route("/login").post(loginUser);
 
 // secured route
-router.route("/logout").post(verifyJWT, logoutUserController);
+router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
